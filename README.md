@@ -25,9 +25,10 @@ KeshavBot is a personalized chatbot web app built using **Flask** (Python backen
 
 ## 🛠️ Setup Instructions
 
-### 1. Clone the Repository
+
 
 ```bash
+### 1. Clone the Repository
 git clone https://github.com/yourusername/keshavbot.git
 cd keshavbot
 
