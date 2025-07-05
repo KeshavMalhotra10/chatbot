@@ -1,0 +1,23 @@
+#title {
+    text-align: center;
+    font-size: 45px;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+
+#box{
+    padding: 1%;
+    position: relative;
+    top: 20px;
+    width: 1240px;
+    border-radius:20px;
+}
+
+#submit{
+    padding: 1%;
+    position: relative;
+    top: 20px;
+    width:100px;
+    border-radius:20px;
+}

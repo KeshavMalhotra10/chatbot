@@ -1,0 +1,10 @@
+.env
+
+/venv
+
+info.txt 
+
+*.pyc
+
+
+
