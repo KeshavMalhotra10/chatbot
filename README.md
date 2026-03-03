@@ -1,12 +1,13 @@
-# 🤖 KeshavBot
+# KeshavBot
 
 KeshavBot is a personalized chatbot web app built using **Flask** (Python backend) and **HTML/CSS/JS** (frontend). It uses the OpenAI API to generate short, casual one-sentence responses based on Keshav's personality and background.
 
-![KeshavBot](images/KeshavBot.png)
+Watch the demo here(click below):
+[![Watch the demo](https://img.youtube.com/vi/jsHG3lwZEz8/maxresdefault.jpg)](https://www.youtube.com/watch?v=jsHG3lwZEz8)
 
 ---
 
-## 🌟 Features
+## Features
 
 - Chat with a personalized AI trained on Keshav's info
 - Friendly, one-sentence responses under 20 tokens
@@ -15,17 +16,17 @@ KeshavBot is a personalized chatbot web app built using **Flask** (Python backen
 
 ---
 
-## 🚀 Technologies Used
+## Technologies Used
 
-- 🧠 OpenAI GPT API (via `openai` Python SDK)
-- 🐍 Flask (Python backend)
-- 🌐 HTML, CSS, JavaScript (frontend)
-- 🌱 dotenv for secure API key handling
-- 🔁 Flask-CORS for cross-origin requests
+- OpenAI GPT API (via `openai` Python SDK)
+- Flask (Python backend)
+- HTML, CSS, JavaScript (frontend)
+- dotenv for secure API key handling
+- Flask-CORS for cross-origin requests
 
 ---
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
 
 
