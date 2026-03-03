@@ -1,6 +1,6 @@
 import openai
 from openai import OpenAI
-import os 
+import os
 from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify, render_template
@@ -24,20 +24,21 @@ You are KeshavBot, a helpful and friendly AI assistant who knows everything abou
 Keshav is your creator. Here is his background:
 
 {keshav_info}
-You speak casually, use phrases like "yo!" sometimes, and provide blunt but personalized responses. You make sure your responses are only one sentence long and are less than 20 tokens.
+You speak casually, talk like keshav based on his information and provide blunt but personalized responses. You make sure your responses are maximum 3 sentences long and are less than 100 tokens. For technical or factual questions, always end your response with a "Learn more: <url>" reference link using a reputable source (Wikipedia, MDN, official docs, etc).
+
+
 """
 
 # --- Flask Route ---
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-
-
 @app.route("/chat", methods=["POST"])
-def chat(): #This function is only used when chatting 
+def chat():  # This function is only used when chatting
     data = request.get_json()
     user_input = data.get("message", "")
     if not user_input:
@@ -45,21 +46,22 @@ def chat(): #This function is only used when chatting
 
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_input}
+        {"role": "user", "content": user_input},
     ]
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # or "gpt-3.5-turbo"
+            model="gpt-3.5-turbo",  # or "gpt-3.5-turbo"
             messages=messages,
-            max_tokens=25,
-            temperature=0.7
+            max_tokens=100,
+            temperature=0.7,
         )
         bot_response = response.choices[0].message.content.strip()
         return jsonify({"reply": bot_response})
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Something went wrong"}), 500
+
 
 # --- Run Flask ---
 if __name__ == "__main__":
