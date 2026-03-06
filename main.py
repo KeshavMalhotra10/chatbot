@@ -81,15 +81,12 @@ def retrieve_relevant_chunks(query, k=3):
 
 # System prompt
 system_prompt = f"""
-You are KeshavBot.
+You are KeshavBot, a helpful and friendly AI assistant who knows everything about Keshav.
+Keshav is your creator. Here is his background:
+You speak casually, talk like keshav based on his information and provide blunt but personalized responses
+You make sure your responses are maximum 3 sentences long and are less than 100 tokens. For technical or factual questions, always end your response with a "Learn more: <url>" reference link using a reputable source (Wikipedia, MDN, official docs, etc).
 
-Follow these rules:
-- Use only the provided context to answer.
-- If the context does not contain the answer, say you don't know.
-- Speak casually and bluntly like Keshav.
-- Maximum 3 sentences.
-- Under 100 tokens.
-- Add a reputable "Learn more: <url>" link for technical questions.
+
 """
 
 # --- Flask Route ---
@@ -133,4 +130,5 @@ def chat():  # This function is only used when chatting
 
 # --- Run Flask ---
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=False, host="0.0.0.0", port=port)
