@@ -1,635 +1,522 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KeshavBot</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <title>JobFit — Resume Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --surface2: #1a1a25;
-      --border: rgba(255,255,255,0.06);
-      --border-bright: rgba(255,255,255,0.12);
-      --accent: #7c6aff;
-      --accent2: #ff6ab0;
-      --accent3: #6affe0;
-      --text: #f0eeff;
-      --text-dim: rgba(240,238,255,0.45);
-      --text-muted: rgba(240,238,255,0.22);
-      --user-bubble: rgba(124,106,255,0.12);
-      --bot-bubble: rgba(106,255,224,0.07);
-      --glow: 0 0 40px rgba(124,106,255,0.15);
-      --radius: 18px;
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      height: 100%;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+    :root {
+      --bg: #f5f2eb;
+      --surface: #faf8f4;
+      --ink: #1a1814;
+      --ink-dim: #6b6760;
+      --ink-faint: #b8b4ac;
+      --border: #dedad3;
+      --accent: #c8502a;
+      --accent-light: #f5ede9;
+      --green: #2d7a4f;
+      --green-light: #e8f4ee;
+      --yellow: #b07d1a;
+      --yellow-light: #fdf5e0;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    body {
       background: var(--bg);
-      color: var(--text);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      background: var(--surface);
+    }
+    header h1 {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-style: italic;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    header p {
+      color: var(--ink-dim);
+      font-size: 0.72rem;
+    }
+    .for-tag {
+      margin-left: auto;
+      font-size: 0.68rem;
+      color: var(--ink-dim);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+
+    /* LAYOUT */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    /* INPUT CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
       overflow: hidden;
     }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(124,106,255,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 40% at 80% 90%, rgba(106,255,224,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 90% 20%, rgba(255,106,176,0.04) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.4;
-    }
-
-    #app {
-      position: relative;
-      z-index: 1;
-      height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    header {
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 22px 0 18px;
-      border-bottom: 1px solid var(--border);
     }
-
-    .logo-group { display: flex; align-items: center; gap: 14px; }
-
-    .logo-text h1 {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      background: linear-gradient(90deg, var(--text) 0%, rgba(240,238,255,0.75) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .logo-text p {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      font-weight: 300;
-      color: var(--accent);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: 1px;
-    }
-
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 14px;
-      border-radius: 100px;
-      background: rgba(106,255,224,0.07);
-      border: 1px solid rgba(106,255,224,0.15);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--accent3);
-      letter-spacing: 0.05em;
-    }
-
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent3);
-      box-shadow: 0 0 6px var(--accent3);
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
-    }
-
-    #chatbox {
-      overflow-y: auto;
-      padding: 28px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(124,106,255,0.2) transparent;
-    }
-
-    #chatbox::-webkit-scrollbar { width: 3px; }
-    #chatbox::-webkit-scrollbar-track { background: transparent; }
-    #chatbox::-webkit-scrollbar-thumb { background: rgba(124,106,255,0.25); border-radius: 4px; }
-
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 60px 20px;
-      text-align: center;
-      animation: fadeUp 0.6s ease both;
-    }
-
-    .empty-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      width: 100%;
-      max-width: 480px;
-      margin-top: 10px;
-    }
-
-    .empty-suggestion {
-      padding: 14px 16px;
-      border-radius: 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font-size: 13px;
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: left;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      line-height: 1.4;
-    }
-
-    .empty-suggestion:hover {
-      border-color: var(--border-bright);
-      background: var(--surface2);
-      color: var(--text);
-      transform: translateY(-1px);
-    }
-
-    .empty-suggestion .suggest-icon { font-size: 16px; margin-bottom: 6px; display: block; }
-
-    .empty-title { font-size: 15px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.01em; }
-
-    .msg-row {
-      display: flex;
-      gap: 12px;
-      animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-      padding: 0 2px;
-    }
-
-    .msg-row.user { flex-direction: row-reverse; }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .avatar {
-      width: 32px; height: 32px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .avatar.bot-avatar {
-      background: linear-gradient(135deg, var(--accent) 0%, #5a49d4 100%);
-      box-shadow: 0 2px 12px rgba(124,106,255,0.3);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      color: white;
-      letter-spacing: 0.04em;
-    }
-
-    .avatar.user-avatar {
-      background: var(--surface2);
-      border: 1px solid var(--border-bright);
-      font-size: 12px;
-      font-weight: 700;
-      font-family: 'DM Mono', monospace;
-      color: var(--text-dim);
-    }
-
-    .bubble {
-      max-width: min(75%, 600px);
-      padding: 13px 17px;
-      border-radius: var(--radius);
-      font-size: 14.5px;
-      line-height: 1.65;
-      font-weight: 400;
-      position: relative;
-    }
-
-    .msg-row.user .bubble {
-      background: var(--user-bubble);
-      border: 1px solid rgba(124,106,255,0.2);
-      border-bottom-right-radius: 5px;
-      color: var(--text);
-    }
-
-    .msg-row.bot .bubble {
-      background: var(--bot-bubble);
-      border: 1px solid rgba(106,255,224,0.1);
-      border-bottom-left-radius: 5px;
-      color: var(--text);
-    }
-
-    .bubble-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
+    .card-title {
+      font-size: 0.68rem;
       font-weight: 500;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 5px;
+      color: var(--ink-dim);
     }
+    .char-count { font-size: 0.65rem; color: var(--ink-faint); }
 
-    .msg-row.user .bubble-label { color: rgba(124,106,255,0.7); text-align: right; }
-    .msg-row.bot .bubble-label  { color: rgba(106,255,224,0.6); }
-
-    .bubble-text { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .bubble-text p { margin: 0; }
-
-    /* Learn more button */
-    .learn-more-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
-      padding: 6px 13px;
-      border-radius: 8px;
-      background: rgba(106,255,224,0.08);
-      border: 1px solid rgba(106,255,224,0.2);
-      color: var(--accent3);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .learn-more-btn:hover {
-      background: rgba(106,255,224,0.15);
-      border-color: rgba(106,255,224,0.4);
-      transform: translateY(-1px);
-    }
-
-    .learn-more-btn svg {
-      width: 11px; height: 11px; flex-shrink: 0;
-    }
-
-    /* Typing indicator */
-    #typingIndicator {
-      display: none;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 0 2px;
-      animation: fadeUp 0.3s ease both;
-    }
-
-    .typing-bubble {
-      padding: 14px 18px;
-      background: var(--bot-bubble);
-      border: 1px solid rgba(106,255,224,0.1);
-      border-radius: var(--radius);
-      border-bottom-left-radius: 5px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .typing-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--accent3);
-      animation: typingBounce 1.3s ease-in-out infinite;
-    }
-
-    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
-
-    @keyframes typingBounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-5px); opacity: 1; }
-    }
-
-    #inputArea {
-      padding: 16px 0 24px;
-      border-top: 1px solid var(--border);
-    }
-
-    .input-shell {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border-bright);
-      border-radius: 20px;
-      padding: 10px 10px 10px 18px;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .input-shell:focus-within {
-      border-color: rgba(124,106,255,0.4);
-      box-shadow: 0 0 0 3px rgba(124,106,255,0.07), var(--glow);
-    }
-
-    #message {
-      flex: 1;
+    textarea {
+      width: 100%;
+      height: 320px;
+      padding: 20px;
       background: transparent;
       border: none;
       outline: none;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--ink);
       resize: none;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 14.5px;
-      font-weight: 400;
-      color: var(--text);
-      line-height: 1.5;
-      max-height: 120px;
-      min-height: 24px;
-      overflow-y: auto;
-      padding: 4px 0;
-      scrollbar-width: none;
     }
+    textarea::placeholder { color: var(--ink-faint); }
 
-    #message::placeholder { color: var(--text-muted); }
-    #message::-webkit-scrollbar { display: none; }
-
-    .send-btn {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, var(--accent) 0%, #5a49d4 100%);
-      color: white;
+    .card-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hint { font-size: 0.65rem; color: var(--ink-faint); }
+
+    button#analyze-btn {
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      padding: 10px 24px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button#analyze-btn:hover { background: var(--accent); }
+    button#analyze-btn:active { transform: scale(0.98); }
+    button#analyze-btn:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+    /* RESULTS */
+    #results { display: none; flex-direction: column; gap: 20px; }
+
+    /* SCORE BLOCK */
+    .score-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px;
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+    }
+    .score-dial {
+      flex-shrink: 0;
+      width: 90px; height: 90px;
+      position: relative;
+    }
+    .score-dial svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-dial circle {
+      fill: none;
+      stroke-width: 6;
+    }
+    .score-dial .track { stroke: var(--border); }
+    .score-dial .fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+    .score-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 12px rgba(124,106,255,0.3);
+      transform: rotate(0deg);
     }
+    .score-number span:first-child {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .score-number span:last-child { font-size: 0.58rem; color: var(--ink-dim); letter-spacing: 0.08em; }
+    .score-text { flex: 1; }
+    .score-text h2 {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .score-text p { color: var(--ink-dim); line-height: 1.7; font-size: 0.78rem; }
 
-    .send-btn:hover { transform: translateY(-1px) scale(1.04); box-shadow: 0 4px 18px rgba(124,106,255,0.45); }
-    .send-btn:active { transform: scale(0.96); }
-    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-    .send-btn svg { width: 16px; height: 16px; transform: translateX(1px); }
+    /* MATCHES + KEYWORDS */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-    .input-footer {
+    .list-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .list-card .card-header { background: var(--surface); }
+
+    .match-item {
       display: flex;
-      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.76rem;
+      line-height: 1.5;
+      animation: fadeUp 0.3s ease both;
+    }
+    .match-item:last-child { border-bottom: none; }
+    .match-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .kw-item {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.76rem;
+      animation: fadeUp 0.3s ease both;
+    }
+    .kw-item:last-child { border-bottom: none; }
+    .kw-top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+    .kw-name { font-weight: 500; color: var(--ink); }
+    .badge {
+      font-size: 0.6rem;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .badge.high { background: #fde8e2; color: var(--accent); }
+    .badge.medium { background: var(--yellow-light); color: var(--yellow); }
+    .badge.low { background: var(--green-light); color: var(--green); }
+    .kw-context { color: var(--ink-dim); font-size: 0.71rem; line-height: 1.5; }
+
+    /* TIP */
+    .tip-block {
+      background: var(--accent-light);
+      border: 1px solid #e8c4b8;
+      border-radius: 4px;
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+    .tip-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* RAG SOURCES */
+    .sources-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .source-row {
+      display: flex;
       align-items: center;
-      padding: 8px 4px 0;
+      gap: 12px;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .source-row:last-child { border-bottom: none; }
+    .source-row:hover { background: var(--bg); }
+    .source-rank { font-size: 0.65rem; color: var(--ink-faint); width: 16px; }
+    .source-bar-wrap { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .source-bar { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.6s ease; }
+    .source-score { font-size: 0.68rem; color: var(--ink-dim); width: 38px; text-align: right; }
+    .source-preview {
+      display: none;
+      padding: 12px 20px 16px 48px;
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      line-height: 1.65;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .source-row.open + .source-preview { display: block; }
+
+    /* LOADING */
+    #loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 60px 20px;
+      color: var(--ink-dim);
+      font-size: 0.75rem;
+    }
+    .loader {
+      width: 32px; height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .input-hint { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.04em; }
-    .char-count { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.04em; transition: color 0.2s; }
-    .char-count.warn { color: var(--accent2); }
-
-    .bubble.error {
-      border-color: rgba(255,100,100,0.2);
-      background: rgba(255,80,80,0.07);
-      color: rgba(255,150,150,0.9);
-    }
-
-    @media (max-width: 600px) {
-      #app { padding: 0 12px; }
-      header { padding: 16px 0 14px; }
-      .empty-grid { grid-template-columns: 1fr; }
-      .bubble { max-width: 88%; }
-      .logo-text h1 { font-size: 17px; }
-      .status-pill span { display: none; }
+    @media (max-width: 800px) {
+      .container { grid-template-columns: 1fr; padding: 20px; }
+      .two-col { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-<div id="app">
-  <header>
-    <div class="logo-group">
-      <div class="logo-text">
-        <h1>KeshavBot</h1>
-        <p>AI Assistant · v2.0</p>
-      </div>
-    </div>
-    <div class="status-pill">
-      <div class="status-dot"></div>
-      <span>Online</span>
-    </div>
-  </header>
 
-  <div id="chatbox">
-    <div class="empty-state" id="emptyState">
-      <p class="empty-title">What can I help you with today?</p>
-      <div class="empty-grid">
-        <button class="empty-suggestion" onclick="fillSuggestion(this)">
-          <span class="suggest-icon">✦</span>
-          Explain a complex topic simply
-        </button>
-        <button class="empty-suggestion" onclick="fillSuggestion(this)">
-          <span class="suggest-icon">⌘</span>
-          Help me write or edit something
-        </button>
-        <button class="empty-suggestion" onclick="fillSuggestion(this)">
-          <span class="suggest-icon">◈</span>
-          Debug or review my code
-        </button>
-        <button class="empty-suggestion" onclick="fillSuggestion(this)">
-          <span class="suggest-icon">◎</span>
-          Brainstorm creative ideas
-        </button>
+<header>
+  <h1>JobFit</h1>
+  <p>Resume × Job Posting Analyzer</p>
+  <div class="for-tag">Keshav Malhotra</div>
+</header>
+
+<div class="container">
+
+  <!-- LEFT: Input -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Job Posting</span>
+        <span class="char-count" id="char-count">0 chars</span>
+      </div>
+      <textarea id="job-input" placeholder="Paste a job description here — full text works best. The more detail, the better the analysis."></textarea>
+      <div class="card-footer">
+        <span class="hint">RAG retrieves relevant resume sections · GPT scores the match</span>
+        <button id="analyze-btn">Analyze →</button>
       </div>
     </div>
   </div>
 
-  <div id="typingIndicator">
-    <div class="avatar bot-avatar">KB</div>
-    <div class="typing-bubble">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
+  <!-- RIGHT: Results -->
+  <div>
+    <div id="loading">
+      <div class="loader"></div>
+      <span>Retrieving resume chunks & scoring match...</span>
+    </div>
+
+    <div id="results">
+
+      <!-- Score -->
+      <div class="score-block">
+        <div class="score-dial">
+          <svg viewBox="0 0 36 36">
+            <circle class="track" cx="18" cy="18" r="15.9"/>
+            <circle class="fill" id="score-arc" cx="18" cy="18" r="15.9"
+              stroke-dasharray="100 100"
+              stroke-dashoffset="100"/>
+          </svg>
+          <div class="score-number">
+            <span id="score-num">—</span>
+            <span>MATCH</span>
+          </div>
+        </div>
+        <div class="score-text">
+          <h2 id="score-label">Analyzing...</h2>
+          <p id="score-reason"></p>
+        </div>
+      </div>
+
+      <!-- Matches + Keywords -->
+      <div class="two-col">
+        <div class="list-card">
+          <div class="card-header">
+            <span class="card-title">✓ Strong Matches</span>
+          </div>
+          <div id="matches-list"></div>
+        </div>
+        <div class="list-card">
+          <div class="card-header">
+            <span class="card-title">⚠ Missing Keywords</span>
+          </div>
+          <div id="keywords-list"></div>
+        </div>
+      </div>
+
+      <!-- Tip -->
+      <div class="tip-block">
+        <span class="tip-icon">→</span>
+        <span id="ats-tip"></span>
+      </div>
+
+      <!-- RAG Sources -->
+      <div class="sources-block">
+        <div class="card-header">
+          <span class="card-title">Retrieved Resume Chunks</span>
+          <span class="char-count">click to expand</span>
+        </div>
+        <div id="sources-list"></div>
+      </div>
+
     </div>
   </div>
 
-  <div id="inputArea">
-    <div class="input-shell">
-      <textarea
-        id="message"
-        placeholder="Message KeshavBot…"
-        rows="1"
-        maxlength="4000"
-        autocomplete="off"
-        spellcheck="true"
-      ></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled title="Send message">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
-    </div>
-    <div class="input-footer">
-      <span class="input-hint">↵ Enter to send · Shift+↵ new line</span>
-      <span class="char-count" id="charCount">0 / 4000</span>
-    </div>
-  </div>
 </div>
 
 <script>
-  const chatbox    = document.getElementById('chatbox');
-  const input      = document.getElementById('message');
-  const sendBtn    = document.getElementById('sendBtn');
-  const typingInd  = document.getElementById('typingIndicator');
-  const charCount  = document.getElementById('charCount');
-  const emptyState = document.getElementById('emptyState');
+  const textarea = document.getElementById('job-input');
+  const btn = document.getElementById('analyze-btn');
+  const charCount = document.getElementById('char-count');
 
-  let isThinking = false;
-
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-    const len = input.value.length;
-    charCount.textContent = `${len} / 4000`;
-    charCount.classList.toggle('warn', len > 3500);
-    sendBtn.disabled = !input.value.trim() || isThinking;
+  textarea.addEventListener('input', () => {
+    charCount.textContent = textarea.value.length + ' chars';
   });
 
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!sendBtn.disabled) sendMessage();
-    }
-  });
-
-  function fillSuggestion(el) {
-    const icon = el.querySelector('.suggest-icon');
-    const text = el.textContent.replace(icon ? icon.textContent : '', '').trim();
-    input.value = text;
-    input.dispatchEvent(new Event('input'));
-    input.focus();
+  function scoreLabel(n) {
+    if (n >= 80) return 'Strong fit';
+    if (n >= 60) return 'Decent match';
+    if (n >= 40) return 'Partial overlap';
+    return 'Weak match';
   }
 
-  // Parses "Learn more: https://..." out of the bot reply
-  function parseReply(raw) {
-    const match = raw.match(/Learn more:\s*(https?:\/\/[^\s]+)/i);
-    if (match) {
-      return {
-        text: raw.replace(/Learn more:\s*https?:\/\/[^\s]+/i, '').trim(),
-        url: match[1]
-      };
-    }
-    return { text: raw, url: null };
+  function scoreColor(n) {
+    if (n >= 70) return '#2d7a4f';
+    if (n >= 45) return '#b07d1a';
+    return '#c8502a';
   }
 
-  function appendMessage(role, rawText, isError = false) {
-    if (emptyState && emptyState.parentNode === chatbox) {
-      chatbox.removeChild(emptyState);
-    }
+  btn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    if (!text) return;
 
-    const { text, url } = role === 'bot' ? parseReply(rawText) : { text: rawText, url: null };
-
-    const row = document.createElement('div');
-    row.className = `msg-row ${role}`;
-
-    const avatar = document.createElement('div');
-    avatar.className = `avatar ${role}-avatar`;
-    avatar.textContent = role === 'bot' ? 'KB' : 'U';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble' + (isError ? ' error' : '');
-
-    const label = document.createElement('div');
-    label.className = 'bubble-label';
-    label.textContent = role === 'user' ? 'You' : 'KeshavBot';
-
-    const textEl = document.createElement('div');
-    textEl.className = 'bubble-text';
-    textEl.textContent = text;
-
-    bubble.appendChild(label);
-    bubble.appendChild(textEl);
-
-    // Render "Learn more" button if a URL was found
-    if (url) {
-      const link = document.createElement('a');
-      link.className = 'learn-more-btn';
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/>
-          <line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
-        Learn more
-      `;
-      bubble.appendChild(link);
-    }
-
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatbox.appendChild(row);
-    scrollToBottom();
-  }
-
-  function scrollToBottom() {
-    chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: 'smooth' });
-  }
-
-  function setThinking(val) {
-    isThinking = val;
-    typingInd.style.display = val ? 'flex' : 'none';
-    sendBtn.disabled = val || !input.value.trim();
-    if (val) scrollToBottom();
-  }
-
-  async function sendMessage() {
-    const text = input.value.trim();
-    if (!text || isThinking) return;
-
-    appendMessage('user', text);
-    input.value = '';
-    input.style.height = 'auto';
-    charCount.textContent = '0 / 4000';
-    sendBtn.disabled = true;
-    setThinking(true);
+    btn.disabled = true;
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
 
     try {
-      const res = await fetch('/chat', {
+      const res = await fetch('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ job_posting: text })
       });
-
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      setThinking(false);
-      appendMessage('bot', data.reply || '(no response)');
-    } catch (err) {
-      setThinking(false);
-      appendMessage('bot', `Something went wrong. ${err.message}`, true);
-    }
+      if (data.error) { alert('Error: ' + data.error); return; }
 
-    input.focus();
-  }
+      // Score dial
+      const score = data.match_score;
+      const circ = 2 * Math.PI * 15.9;
+      const arc = document.getElementById('score-arc');
+      const color = scoreColor(score);
+      arc.style.stroke = color;
+      arc.setAttribute('stroke-dasharray', `${circ} ${circ}`);
+      arc.setAttribute('stroke-dashoffset', circ);
+      setTimeout(() => {
+        arc.style.transition = 'stroke-dashoffset 1s ease';
+        arc.setAttribute('stroke-dashoffset', circ - (score / 100) * circ);
+      }, 50);
+
+      document.getElementById('score-num').textContent = score;
+      document.getElementById('score-num').style.color = color;
+      document.getElementById('score-label').textContent = scoreLabel(score);
+      document.getElementById('score-reason').textContent = data.match_reasoning;
+
+      // Matches
+      const matchList = document.getElementById('matches-list');
+      matchList.innerHTML = data.strong_matches.map((m, i) => `
+        <div class="match-item" style="animation-delay:${i*60}ms">
+          <div class="match-dot"></div>
+          <span>${m}</span>
+        </div>
+      `).join('');
+
+      // Keywords
+      const kwList = document.getElementById('keywords-list');
+      kwList.innerHTML = data.missing_keywords.map((k, i) => `
+        <div class="kw-item" style="animation-delay:${i*60}ms">
+          <div class="kw-top">
+            <span class="kw-name">${k.keyword}</span>
+            <span class="badge ${k.importance}">${k.importance}</span>
+          </div>
+          <div class="kw-context">${k.context}</div>
+        </div>
+      `).join('');
+
+      // Tip
+      document.getElementById('ats-tip').textContent = data.ats_tip;
+
+      // Sources
+      const srcList = document.getElementById('sources-list');
+      srcList.innerHTML = data.sources.map((s, i) => `
+        <div class="source-row" onclick="this.classList.toggle('open')">
+          <span class="source-rank">#${i+1}</span>
+          <div class="source-bar-wrap">
+            <div class="source-bar" style="width:0%" data-pct="${Math.round(s.score*100)}"></div>
+          </div>
+          <span class="source-score">${s.score.toFixed(3)}</span>
+        </div>
+        <div class="source-preview">${s.chunk}</div>
+      `).join('');
+
+      setTimeout(() => {
+        srcList.querySelectorAll('.source-bar').forEach(b => {
+          b.style.width = b.dataset.pct + '%';
+        });
+      }, 100);
+
+      document.getElementById('loading').style.display = 'none';
+      const results = document.getElementById('results');
+      results.style.display = 'flex';
+
+    } catch(e) {
+      alert('Network error — is the server running?');
+    } finally {
+      btn.disabled = false;
+      document.getElementById('loading').style.display = 'none';
+    }
+  });
 </script>
 </body>
 </html>
