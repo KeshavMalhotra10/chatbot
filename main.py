@@ -1,3 +1,4 @@
+# importing all necessary libraries
 import openai
 from openai import OpenAI
 import os
@@ -14,7 +15,6 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-# ── Resume as knowledge base ──────────────────────────────────────────────────
 RESUME = """
 Keshav Malhotra
 226-505-9512 | keshav.malhotra@uwaterloo.ca | linkedin.com/in/keshavxmalhotra | github.com/KeshavMalhotra10
@@ -62,50 +62,50 @@ AI Heart Disease Prediction (Python, NumPy, Matplotlib, Kaggle) Oct 2023 – Nov
 """
 
 
-# ── Sentence-boundary chunking ────────────────────────────────────────────────
-def chunk_text(text, chunk_size=400):
-    sentences, current = [], ""
-    for sentence in text.replace("\n", " ").split(". "):
-        if len(current) + len(sentence) < chunk_size:
-            current += sentence + ". "
-        else:
-            if current:
-                sentences.append(current.strip())
-            current = sentence + ". "
+def chunk_text(text, size=400):
+    current = ""
+    sentences = []
+    text = text.split(".")
+    for c in text:
+        if len(current) < size:
+            current += c
+        elif len(current) >= size:
+            sentences.append(current)
+            current = c
     if current:
-        sentences.append(current.strip())
+        sentences.append(current)
     return sentences
 
 
 chunks = chunk_text(RESUME)
-chunk_embeddings = np.array(
-    [
-        client.embeddings.create(model="text-embedding-3-small", input=c)
-        .data[0]
-        .embedding
-        for c in chunks
-    ]
-)
+chunk_embeddings = []
+for c in chunks:
+    embed = client.embeddings.create(model="text-embedding-3-small", input=c)
+    chunk_embeddings.append(embed.data[0].embedding)
+chunk_embeddings = np.array(chunk_embeddings)
 
 
 def retrieve_relevant_chunks(query, k=4):
-    qv = np.array(
-        client.embeddings.create(model="text-embedding-3-small", input=query)
-        .data[0]
-        .embedding
-    )
-    sims = np.dot(chunk_embeddings, qv)
-    top = sims.argsort()[-k:][::-1]
-    return [{"chunk": chunks[i], "score": round(float(sims[i]), 4)} for i in top]
+    queryEmbed = client.embeddings.create(model="text-embedding-3-small", input=query)
+    queryVector = np.array(queryEmbed.data[0].embedding)
+    similarity = np.dot(chunk_embeddings, queryVector)
+    top = similarity.argsort()[-k:][::-1]
+    return [{"chunk": chunks[i], "score": round(float(similarity[i]), 4)} for i in top]
 
 
-# ── Main analysis endpoint ────────────────────────────────────────────────────
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.get_json()
     job_posting = data.get("job_posting", "").strip()
+
     if not job_posting:
         return jsonify({"error": "No job posting provided"}), 400
+
+    if len(job_posting) < 100:
+        return (
+            jsonify({"error": "Job posting is too short — paste the full description"}),
+            400,
+        )
 
     retrieved = retrieve_relevant_chunks(job_posting)
     context = "\n\n".join([r["chunk"] for r in retrieved])
@@ -135,17 +135,20 @@ Rules:
 - missing_keywords should be 5-8 keywords/phrases from the job posting NOT present in the resume
 - strong_matches should be 4-6 genuine matches
 - Be specific, not generic. Reference actual resume content.
-- Return only valid JSON.
+- Return only valid JSON. No trailing commas. No extra text before or after.
+- Base your analysis ONLY on what is explicitly written in the job posting. Do not invent requirements.
+- If the job posting is vague or too short, return a match_score of 0 and explain why in match_reasoning.
 """
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=800,
-            temperature=0.3,
+            max_tokens=1200,
+            temperature=0.1,
         )
         raw = response.choices[0].message.content.strip()
+        print("RAW RESPONSE:", raw)
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
@@ -154,8 +157,12 @@ Rules:
         result["sources"] = retrieved
         return jsonify(result)
     except json.JSONDecodeError as e:
+        print("JSON ERROR:", e)
         return jsonify({"error": f"Failed to parse response: {str(e)}"}), 500
     except Exception as e:
+        import traceback
+
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
