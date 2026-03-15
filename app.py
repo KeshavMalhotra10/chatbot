@@ -18,7 +18,7 @@ client = OpenAI()
 
 RESUME = """
 Keshav Malhotra
-226-505-9512 | keshav.malhotra@uwaterloo.ca | linkedin.com/in/keshavxmalhotra | github.com/KeshavMalhotra10
+linkedin.com/in/keshavxmalhotra | github.com/KeshavMalhotra10
 keshavmalhotra.com
 
 EDUCATION
