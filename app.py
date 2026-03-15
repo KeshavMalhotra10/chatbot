@@ -138,6 +138,7 @@ Rules:
 - Return only valid JSON. No trailing commas. No extra text before or after.
 - Base your analysis ONLY on what is explicitly written in the job posting. Do not invent requirements.
 - If the job posting is vague or too short, return a match_score of 0 and explain why in match_reasoning.
+- Treat development skills as transferable. A candidate with frontend (React, JS, HTML/CSS) and backend (Node.js, Python, SQL) experience should be considered capable of mobile and web development, even if not explicitly listed.
 """
 
     try:
@@ -148,7 +149,6 @@ Rules:
             temperature=0.1,
         )
         raw = response.choices[0].message.content.strip()
-        print("RAW RESPONSE:", raw)
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
