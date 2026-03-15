@@ -1,64 +1,97 @@
-# KeshavBot
+# JobFit — AI Resume Analyzer
 
-KeshavBot is a personalized chatbot web app built using **Flask** (Python backend) and **HTML/CSS/JS** (frontend). It uses the OpenAI API to generate short, casual one-sentence responses based on Keshav's personality and background.
+JobFit is a RAG-powered web app that analyzes your resume against any job posting and returns an ATS match score, missing keywords, and actionable feedback. Built with Flask, OpenAI, and NumPy.
 
-Watch the demo here(click below):
-[![Watch the demo](https://img.youtube.com/vi/jsHG3lwZEz8/maxresdefault.jpg)](https://www.youtube.com/watch?v=jsHG3lwZEz8)
+**[Live Demo →](https://jobfit-3tgb.onrender.com/)**
+
+---
+
+## How It Works
+
+1. You paste a job posting into the app
+2. The backend uses **Retrieval-Augmented Generation (RAG)** to find the most semantically relevant sections of your resume using vector embeddings and cosine similarity
+3. Those chunks are injected into a prompt alongside the job posting
+4. GPT returns a structured JSON response with a match score, strong matches, missing ATS keywords, and a tip
+5. The frontend renders the results with a match dial, keyword importance badges, and the retrieved resume chunks with similarity scores
 
 ---
 
 ## Features
 
-- Chat with a personalized AI trained on Keshav's info
-- Friendly, one-sentence responses under 20 tokens
-- Modern web interface with live user interaction
-- Uses OpenAI's GPT-4o model via API
+- **Match Score** — 0–100 ATS compatibility score with reasoning
+- **Missing Keywords** — keywords from the job posting absent from your resume, ranked by importance
+- **Strong Matches** — resume experience that directly aligns with the role
+- **RAG Transparency** — see exactly which resume chunks were retrieved and their cosine similarity scores
+- **Input Validation** — rejects vague or short inputs to prevent hallucinated results
 
 ---
 
-## Technologies Used
+## Tech Stack
 
-- OpenAI GPT API (via `openai` Python SDK)
-- Flask (Python backend)
-- HTML, CSS, JavaScript (frontend)
-- dotenv for secure API key handling
-- Flask-CORS for cross-origin requests
+- **Backend:** Python, Flask, Flask-CORS
+- **AI:** OpenAI GPT-3.5-turbo, text-embedding-3-small
+- **RAG:** NumPy cosine similarity, sentence-boundary chunking
+- **Frontend:** HTML, CSS, JavaScript
+- **Deployment:** Render
 
 ---
 
-## Setup Instructions
+## Setup
 
-
-
+### 1. Clone the repo
 ```bash
-### 1. Clone the Repository
 git clone https://github.com/KeshavMalhotra10/chatbot.git
 cd chatbot
+```
 
-### 2. Create the virtual environment
+### 2. Create a virtual environment
+```bash
 python -m venv venv
-source venv/bin/activate   # on Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
+```
 
-### 3. Install Requirements 
-pip3 install openai, dotenv, flask, flask_cors
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-### 4. Create a .env file in the root folder
+### 4. Add your API key
+Create a `.env` file in the root:
+```
 OPENAI_API_KEY=your_openai_key_here
+```
 
-### 5. Create a info.txt file and populate with your own info
+### 5. Run the app
+```bash
+python app.py
+```
 
-### 6. Run the app using flask
-python main.py
+Then open `http://localhost:5001` in your browser.
 
-### 7. Open the local host link provided(Enter url into browser)
+---
 
-### 8. Here is the project structure:
+## Project Structure
 
+```
 chatbot/
-├── main.py            ✅ Flask backend
-├── info.txt           ✅ Background data for the chatbot (In gitignore to protect personal info)
-├── .env               ✅ Your OpenAI API key (keep this secre, should be in gitignore)
-├── .gitignore         ✅ Excludes venv, .env, etc.
-├── README.md          ✅ Project info
-├── templates/         ✅ HTML files go here (e.g., index.html)
-└── venv/              ✅ Virtual environment (should be in .gitignore)
+├── app.py              # Flask backend — RAG pipeline + /analyze endpoint
+├── templates/
+│   └── index.html      # Frontend UI
+├── requirements.txt    # Dependencies
+├── Procfile            # Render deployment config
+├── .env                # API key (gitignored)
+└── .gitignore
+```
+
+---
+
+## RAG Implementation
+
+The retrieval pipeline works as follows:
+
+- Resume text is split into sentence-boundary-aware chunks (~400 chars)
+- Each chunk is embedded using OpenAI's `text-embedding-3-small` model at startup
+- On each request, the job posting is embedded and compared against all chunk embeddings via dot product (cosine similarity)
+- The top-4 most relevant chunks are injected into the prompt as context
+
+This grounds the LLM's analysis in actual resume content rather than generating generic feedback.
