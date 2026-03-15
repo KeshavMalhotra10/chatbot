@@ -1,5 +1,6 @@
 # importing all necessary libraries
 import openai
+import re
 from openai import OpenAI
 import os
 import json
@@ -135,10 +136,12 @@ Rules:
 - missing_keywords should be 5-8 keywords/phrases from the job posting NOT present in the resume
 - strong_matches should be 4-6 genuine matches
 - Be specific, not generic. Reference actual resume content.
-- Return only valid JSON. No trailing commas. No extra text before or after.
 - Base your analysis ONLY on what is explicitly written in the job posting. Do not invent requirements.
 - If the job posting is vague or too short, return a match_score of 0 and explain why in match_reasoning.
 - Treat development skills as transferable. A candidate with frontend (React, JS, HTML/CSS) and backend (Node.js, Python, SQL) experience should be considered capable of mobile and web development, even if not explicitly listed.
+- Return only valid JSON. No extra text before or after.
+- No trailing commas anywhere in the JSON — trailing commas will break the parser and are strictly forbidden.
+- The JSON must be parseable by Python's json.loads() with zero modifications.
 """
 
     try:
@@ -149,10 +152,16 @@ Rules:
             temperature=0.1,
         )
         raw = response.choices[0].message.content.strip()
+
+        # Strip markdown code fences
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
+
+        # Remove trailing commas before ] or } (GPT does this sometimes)
+        raw = re.sub(r",\s*([}\]])", r"\1", raw)
+
         result = json.loads(raw)
         result["sources"] = retrieved
         return jsonify(result)
@@ -164,6 +173,16 @@ Rules:
 
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=False, host="0.0.0.0", port=port)
 
 
 @app.route("/")
