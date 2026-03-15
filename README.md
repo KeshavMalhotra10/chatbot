@@ -61,7 +61,12 @@ Create a `.env` file in the root:
 OPENAI_API_KEY=your_openai_key_here
 ```
 
-### 5. Run the app
+### 5. Change RESUME in app.py
+```bash
+RESUME = """ ... """
+```
+
+### 6. Run the app
 ```bash
 python app.py
 ```
